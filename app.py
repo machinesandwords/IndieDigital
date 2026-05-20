@@ -199,7 +199,7 @@ defaults = {
     "v_problem": "", "v_market": "", "v_price": "", "v_format": "Digital download (PDF/guide)", "v_geo": "Global",
     "validator_results": None,
     # Detector inputs
-    "det_name": "", "det_desc": "", "det_buyer": "", "det_url": "",
+    "det_name": "", "det_desc": "", "det_buyer": "", "det_url": "", "det_niche": "",
     "competitor_products": [], "competitor_last_run": None,
     # Scanner inputs
     "scan_name": "", "scan_desc": "", "scan_buyer": "", "scan_url": "",
@@ -414,17 +414,19 @@ def get_scan_queries():
     return [q.strip() for q in st.session_state.scan_queries.strip().split("\n") if q.strip()]
 
 def get_competitor_queries():
-    desc=st.session_state.det_desc[:60] if st.session_state.det_desc else "management tool"
-    name=st.session_state.det_name or "product"
+    niche = st.session_state.get("det_niche", "").strip()
+    desc = st.session_state.det_desc[:60] if st.session_state.det_desc else "management tool"
+    name = st.session_state.det_name or "product"
+    anchor = niche if niche else desc[:40]
     return [
-        f"Etsy {desc} template spreadsheet 2026",
-        f"Gumroad {desc} tool template",
-        f"GitHub {desc} open source",
-        f"{desc} software SaaS app 2026",
-        f"Product Hunt {desc} tool",
-        f"{name} alternative competitor",
-        f"{desc} product comparison 2026",
-        f"Etsy {name} similar products",
+        f"{anchor} software tool 2026",
+        f"{anchor} management app Etsy",
+        f"{anchor} tracker template Gumroad",
+        f"{anchor} open source GitHub",
+        f"{anchor} business tool Product Hunt 2026",
+        f"{anchor} spreadsheet template download",
+        f"{name} alternative {anchor} competitor",
+        f"{anchor} order tracking inventory 2026",
     ]
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -694,6 +696,7 @@ def show_detector():
         with c1:
             det_name=st.text_input("Product name", value=st.session_state.det_name, placeholder="e.g. Offset3D", key="det_name_input")
             det_buyer=st.text_input("Who it's for", value=st.session_state.det_buyer, placeholder="e.g. 3D print farm operators, 1-20 printers", key="det_buyer_input")
+            det_niche=st.text_input("Industry or niche", value=st.session_state.det_niche, placeholder="e.g. 3D printing, sourdough baking, indie game dev", key="det_niche_input", help="This is the most important field for finding accurate competitors. Be specific — your niche, not your product type.")
         with c2:
             det_url=st.text_input("Your URL", value=st.session_state.det_url, placeholder="e.g. offsetos.com/offset3D", key="det_url_input")
             det_desc=st.text_area("What it does", value=st.session_state.det_desc, placeholder="2-3 sentences.", height=100, key="det_desc_input")
@@ -705,6 +708,7 @@ def show_detector():
                 st.session_state.det_desc=det_desc
                 st.session_state.det_buyer=det_buyer
                 st.session_state.det_url=det_url
+                st.session_state.det_niche=det_niche
                 st.success("Saved.")
         with c2:
             if st.button(f"Copy product details to Community Scanner", key="copy_det_to_scan"):
@@ -713,6 +717,7 @@ def show_detector():
                 st.session_state.scan_buyer=st.session_state.det_buyer
                 st.session_state.scan_url=st.session_state.det_url
                 st.success("Copied to Community Scanner.")
+                st.rerun()
 
     c1,c2=st.columns([4,1])
     with c1: st.write("")
