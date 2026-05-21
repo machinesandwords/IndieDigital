@@ -575,7 +575,7 @@ def show_home():
                     go_module(m['key'])
 
     st.divider()
-    st.caption("Indie Digital · support@indiedigital.dev · Manual review required before every post.")
+    st.caption("Indie Digital · support@indiedigital.dev")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # BUSINESS VALIDATOR MODULE
