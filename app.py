@@ -110,6 +110,21 @@ html, body, [class*="css"] { font-family: 'Source Sans 3', sans-serif; }
 .stat-label { font-size:0.7rem; color:#9e8e80; letter-spacing:0.1em; font-family:'IBM Plex Mono',monospace; }
 .stale-warning { background:#1a1200; border:1px solid #3d2e00; border-left:3px solid #f59e0b; padding:6px 12px; font-size:0.78rem; color:#f59e0b; margin-bottom:8px; border-radius:3px; }
 
+/* ── Audience Mapper ── */
+.sub-row { background:#faf8f5; border:1px solid #e8d8c8; border-radius:4px; padding:0.6rem 1rem; margin-bottom:0.4rem; display:flex; align-items:center; justify-content:space-between; }
+.sub-name { font-family:'IBM Plex Mono',monospace; font-size:0.85rem; color:#2d2418; font-weight:500; }
+.sub-score { font-family:'IBM Plex Mono',monospace; font-size:0.75rem; color:#9e8e80; }
+.sub-bar-wrap { flex:1; margin:0 1rem; background:#f0ebe4; border-radius:2px; height:6px; }
+.sub-bar { background:#b94a3a; border-radius:2px; height:6px; }
+.psycho-block { background:#faf8f5; border-left:3px solid #b94a3a; padding:1rem 1.2rem; margin-bottom:1rem; font-size:0.88rem; color:#4a3f35; line-height:1.7; }
+.angle-card { background:#fff; border:1px solid #e8d8c8; border-radius:6px; padding:0.9rem 1.1rem; margin-bottom:0.6rem; }
+.angle-title { font-family:'Lora',serif; font-size:0.95rem; font-weight:600; color:#2d2418; margin-bottom:0.2rem; }
+.angle-rationale { font-size:0.82rem; color:#6b5c50; line-height:1.5; }
+.product-idea-card { background:#f5ede0; border-radius:6px; padding:1rem 1.2rem; margin-bottom:0.7rem; }
+.product-idea-name { font-family:'Lora',serif; font-size:1rem; font-weight:600; color:#2d2418; margin-bottom:0.2rem; }
+.product-idea-desc { font-size:0.85rem; color:#4a3f35; line-height:1.5; margin-bottom:0.3rem; }
+.product-idea-rationale { font-size:0.78rem; color:#9e8e80; font-family:'IBM Plex Mono',monospace; line-height:1.5; }
+
 /* ── Unlock card ── */
 .unlock-card { background:#faf8f5; border:1.5px solid #e8d8c8; border-radius:8px; padding:2rem; max-width:520px; margin:2rem auto; text-align:center; }
 .unlock-title { font-family:'Lora',serif; font-size:1.4rem; font-weight:600; color:#2d2418; margin-bottom:0.5rem; }
@@ -120,40 +135,6 @@ html, body, [class*="css"] { font-family: 'Source Sans 3', sans-serif; }
 .back-btn { font-family:'IBM Plex Mono',monospace; font-size:0.78rem; color:#9e8e80; cursor:pointer; margin-bottom:1.5rem; display:inline-block; letter-spacing:0.06em; }
 .mono-label { font-family:'IBM Plex Mono',monospace; font-size:0.72rem; color:#9e8e80; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.5rem; }
 </style>
-
-<script>
-// localStorage bridge via query params — Streamlit can't access localStorage directly
-// We use a workaround: inject unlock states into URL hash on load
-function getUnlockStates() {
-    return {
-        validator: localStorage.getItem('indie_unlock_validator') === 'true',
-        detector: localStorage.getItem('indie_unlock_detector') === 'true',
-        scanner: localStorage.getItem('indie_unlock_scanner') === 'true',
-        validator_input_name: localStorage.getItem('indie_input_name') || '',
-        validator_input_desc: localStorage.getItem('indie_input_desc') || '',
-        validator_input_buyer: localStorage.getItem('indie_input_buyer') || '',
-        validator_input_url: localStorage.getItem('indie_input_url') || '',
-        detector_input_name: localStorage.getItem('indie_det_name') || '',
-        detector_input_desc: localStorage.getItem('indie_det_desc') || '',
-        detector_input_buyer: localStorage.getItem('indie_det_buyer') || '',
-        detector_input_url: localStorage.getItem('indie_det_url') || '',
-        scanner_input_name: localStorage.getItem('indie_scan_name') || '',
-        scanner_input_desc: localStorage.getItem('indie_scan_desc') || '',
-        scanner_input_buyer: localStorage.getItem('indie_scan_buyer') || '',
-        scanner_input_url: localStorage.getItem('indie_scan_url') || '',
-        scanner_input_queries: localStorage.getItem('indie_scan_queries') || '',
-    };
-}
-function saveUnlock(module) {
-    localStorage.setItem('indie_unlock_' + module, 'true');
-}
-function saveInputs(prefix, name, desc, buyer, url) {
-    localStorage.setItem('indie_' + prefix + '_name', name);
-    localStorage.setItem('indie_' + prefix + '_desc', desc);
-    localStorage.setItem('indie_' + prefix + '_buyer', buyer);
-    localStorage.setItem('indie_' + prefix + '_url', url);
-}
-</script>
 """, unsafe_allow_html=True)
 
 # ── Unlock codes ───────────────────────────────────────────────────────────────
@@ -161,6 +142,7 @@ UNLOCK_CODES = {
     "VALIDATOR-8K4P-2X9M": "validator",
     "DETECTOR-3N7Q-5R1W": "detector",
     "SCANNER-6T2L-4V8J": "scanner",
+    "MAPPER-2P9K-7W4X": "mapper",
     "BUNDLE-ALL-9Y5H-7C3D": "bundle",
 }
 
@@ -168,6 +150,7 @@ GUMROAD_URLS = {
     "validator": "https://indiedigital.gumroad.com/l/business-validator",
     "detector": "https://indiedigital.gumroad.com/l/competitor-detector",
     "scanner": "https://indiedigital.gumroad.com/l/community-scanner",
+    "mapper": "https://indiedigital.gumroad.com/l/audience-mapper",
     "bundle": "https://indiedigital.gumroad.com/l/citizen-dev-bundle",
 }
 
@@ -176,6 +159,8 @@ STALE_INDICATORS = [
     "2 years","3 years","4 years","5 years",
     "1 year ago","2 years ago","3 years ago","last year",
 ]
+
+
 
 DEFAULT_QUERIES = """[your problem] frustrated can't find solution 2026
 [your problem] help discussion forum 2026
@@ -189,27 +174,30 @@ def is_stale(post):
 
 # ── Session state ──────────────────────────────────────────────────────────────
 defaults = {
-    # Navigation
     "current_module": "home",
-    # Unlock states (would normally come from localStorage — using session as fallback)
     "unlocked_validator": False,
     "unlocked_detector": False,
     "unlocked_scanner": False,
-    # Validator inputs
+    "unlocked_mapper": False,
+    # Validator
     "v_problem": "", "v_market": "", "v_price": "", "v_format": "Digital download (PDF/guide)", "v_geo": "Global",
     "validator_results": None,
-    # Detector inputs
+    # Detector
     "det_name": "", "det_desc": "", "det_buyer": "", "det_url": "", "det_niche": "",
     "competitor_products": [], "competitor_last_run": None,
-    # Scanner inputs
+    # Scanner
     "scan_name": "", "scan_desc": "", "scan_buyer": "", "scan_url": "",
     "scan_queries": DEFAULT_QUERIES,
     "community_posts": [], "community_last_run": None,
+    # Mapper
+    "map_subreddit": "",
+    "mapper_results": None, "mapper_last_run": None,
     # Activity log
     "activity_log": [],
-    # Unlock input values
+    # Unlock inputs
     "unlock_input_detector": "",
     "unlock_input_scanner": "",
+    "unlock_input_mapper": "",
 }
 for k, v in defaults.items():
     if k not in st.session_state:
@@ -223,6 +211,8 @@ def get_client():
         st.stop()
     return anthropic.Anthropic(api_key=api_key)
 
+
+
 # ── Unlock logic ───────────────────────────────────────────────────────────────
 def attempt_unlock(code, module_context):
     code = code.strip().upper()
@@ -232,6 +222,7 @@ def attempt_unlock(code, module_context):
             st.session_state.unlocked_validator = True
             st.session_state.unlocked_detector = True
             st.session_state.unlocked_scanner = True
+            st.session_state.unlocked_mapper = True
             return True, "All modules unlocked."
         elif unlocked == module_context:
             st.session_state[f"unlocked_{module_context}"] = True
@@ -252,7 +243,7 @@ def validator_context(idea):
 def run_dim1(client, idea):
     try:
         r = client.messages.create(
-            model="claude-opus-4-5", max_tokens=1200,
+            model="claude-sonnet-4-20250514", max_tokens=1200,
             system=validator_context(idea)+"""
 Search Reddit, forums, Quora for evidence people experience this problem.
 Return JSON only:
@@ -271,7 +262,7 @@ green=clear repeated demand, yellow=thin, red=little evidence. ONLY valid JSON."
 def run_dim2(client, idea):
     try:
         r = client.messages.create(
-            model="claude-opus-4-5", max_tokens=1200,
+            model="claude-sonnet-4-20250514", max_tokens=1200,
             system=validator_context(idea)+"""
 Search Etsy, Gumroad, GitHub, Product Hunt for competing products and communities.
 Return JSON only:
@@ -291,7 +282,7 @@ def run_dim3(client, idea, competitors):
     comp_names=", ".join(competitors) if competitors else "existing products"
     try:
         r = client.messages.create(
-            model="claude-opus-4-5", max_tokens=1200,
+            model="claude-sonnet-4-20250514", max_tokens=1200,
             system=validator_context(idea)+f"""
 Known competitors: {comp_names}
 Search G2, Capterra, Trustpilot, Gumroad reviews, Reddit for complaints and unmet needs.
@@ -345,7 +336,7 @@ Buyer: {st.session_state.det_buyer}"""
 def search_community_posts(client, query):
     try:
         r=client.messages.create(
-            model="claude-opus-4-5", max_tokens=1000,
+            model="claude-sonnet-4-20250514", max_tokens=1000,
             system="""Search Reddit and online communities for relevant posts.
 Return JSON array of up to 3:
 [{"title":"","source":"","url":"","summary":"2-3 sentences","age":"e.g. 2 days ago"}]
@@ -362,7 +353,7 @@ Prioritize last 48 hours. ONLY valid JSON array.""",
 def score_post(client, post):
     try:
         r=client.messages.create(
-            model="claude-opus-4-5", max_tokens=1000,
+            model="claude-sonnet-4-20250514", max_tokens=1000,
             system=community_prompt()+"""
 Return JSON only:
 {"opportunity":"High/Medium/Low","reason":"one sentence","productFit":true/false,
@@ -379,7 +370,7 @@ ONLY valid JSON.""",
 def search_competitors(client, query):
     try:
         r=client.messages.create(
-            model="claude-opus-4-5", max_tokens=1000,
+            model="claude-sonnet-4-20250514", max_tokens=1000,
             system="""Search Etsy, Gumroad, GitHub, Product Hunt for competing products.
 Return JSON array of up to 3:
 [{"name":"","platform":"","url":"","description":"2-3 sentences","price":"","seller":""}]
@@ -396,7 +387,7 @@ ONLY valid JSON array.""",
 def analyze_competitor(client, product):
     try:
         r=client.messages.create(
-            model="claude-opus-4-5", max_tokens=1000,
+            model="claude-sonnet-4-20250514", max_tokens=1000,
             system=competitor_prompt()+"""
 Return JSON only:
 {"threat":"Direct/Adjacent/Reference","price":"","platform":"",
@@ -428,6 +419,98 @@ def get_competitor_queries():
         f"{name} alternative {anchor} competitor",
         f"{anchor} order tracking inventory 2026",
     ]
+
+# ── Audience Mapper functions ──────────────────────────────────────────────────
+
+MAPPER_SEARCH_ANGLES = [
+    "which subreddits do r/{sub} members also post in cross-community",
+    "r/{sub} users also active in subreddit community overlap",
+    "r/{sub} related communities adjacent subreddits members discuss",
+    "r/{sub} what tools products software does community use recommend",
+    "r/{sub} recurring problems frustrations members complain about",
+    "r/{sub} member demographics identity who are these people",
+    "r/{sub} hobbies interests outside niche mentioned community",
+    "r/{sub} income money work side hustle financial goals discussion",
+]
+
+def run_mapper_searches(client, subreddit_name):
+    """Run structured web searches to surface community patterns for a subreddit."""
+    pb = st.progress(0, text="Searching community patterns...")
+    all_findings = []
+
+    queries = [a.format(sub=subreddit_name) for a in MAPPER_SEARCH_ANGLES]
+
+    for i, query in enumerate(queries):
+        pb.progress(int(((i+1)/len(queries))*80), text=f"Searching angle {i+1} of {len(queries)}...")
+        try:
+            r = client.messages.create(
+                model="claude-sonnet-4-20250514", max_tokens=600,
+                system=f"""You are researching the Reddit community r/{subreddit_name}.
+Search the web for the query provided and extract specific, concrete findings relevant to understanding this community's cross-platform presence, identity, and behavior.
+Return JSON only:
+{{"findings": ["up to 5 specific concrete observations — name actual subreddits, tools, topics, or patterns found"]}}
+If no relevant results found, return {{"findings": []}}
+ONLY valid JSON.""",
+                messages=[{"role":"user","content":f"Search: {query}"}],
+                tools=[{"type":"web_search_20250305","name":"web_search"}],
+            )
+            text = "".join(b.text for b in r.content if hasattr(b,"text"))
+            s, e = text.find("{"), text.rfind("}")+1
+            if s >= 0 and e > s:
+                data = json.loads(text[s:e])
+                all_findings.extend(data.get("findings", []))
+        except Exception:
+            pass
+        time.sleep(0.2)
+
+    pb.progress(85, text="Running AI synthesis...")
+    return all_findings
+
+def run_mapper_synthesis(client, subreddit_name, findings):
+    """Claude synthesis from web search findings: overlap signals, psychographic summary, marketing angles, product ideas."""
+    findings_text = "\n".join([f"- {f}" for f in findings]) if findings else "No specific findings retrieved."
+
+    try:
+        r = client.messages.create(
+            model="claude-sonnet-4-20250514", max_tokens=2500,
+            system=f"""You are analyzing publicly available information about the Reddit community r/{subreddit_name}.
+The findings below were gathered by searching for community patterns, cross-sub activity, tools used, recurring topics, and identity signals.
+
+RESEARCH FINDINGS:
+{findings_text}
+
+Produce four outputs from this data.
+
+Return JSON only, with this exact structure:
+{{
+  "overlap_signals": [
+    {{"community": "community or topic name", "strength": "Strong/Moderate/Weak", "reason": "one sentence explaining the signal"}},
+    ... up to 12 entries, ranked Strong first
+  ],
+  "psychographic_summary": "2-3 paragraphs written as a briefing for a product strategist who has never encountered this audience before. Cover identity, motivations, values, and behavior patterns visible in the research.",
+  "marketing_angles": [
+    {{"angle": "short angle title", "rationale": "one sentence explaining why this angle fits based on the research"}},
+    {{"angle": "...", "rationale": "..."}},
+    {{"angle": "...", "rationale": "..."}},
+    {{"angle": "...", "rationale": "..."}}
+  ],
+  "product_ideas": [
+    {{"name": "product name", "description": "one sentence describing what it does", "rationale": "one sentence tying this idea back to the audience research"}},
+    {{"name": "...", "description": "...", "rationale": "..."}},
+    {{"name": "...", "description": "...", "rationale": "..."}},
+    {{"name": "...", "description": "...", "rationale": "..."}},
+    {{"name": "...", "description": "...", "rationale": "..."}}
+  ]
+}}
+ONLY valid JSON. No preamble.""",
+            messages=[{"role":"user","content":f"Synthesize the audience profile for r/{subreddit_name}."}],
+        )
+        text = "".join(b.text for b in r.content if hasattr(b,"text"))
+        s, e = text.find("{"), text.rfind("}")+1
+        if s >= 0 and e > s:
+            return json.loads(text[s:e])
+    except Exception as ex:
+        return {"overlap_signals": [], "psychographic_summary": f"Synthesis error: {ex}", "marketing_angles": [], "product_ideas": []}
 
 # ══════════════════════════════════════════════════════════════════════════════
 # NAVIGATION HELPERS
@@ -463,7 +546,7 @@ def locked_screen(module_key, title, icon, description, price, gumroad_url):
         st.link_button("🔓 Unlock Now →", gumroad_url, use_container_width=True)
         st.write("")
         st.markdown('<div class="mono-label" style="text-align:center">Already purchased? Enter your code:</div>', unsafe_allow_html=True)
-        code_input = st.text_input("Unlock code", placeholder="e.g. DETECTOR-3N7Q-5R1W", key=f"unlock_input_{module_key}", label_visibility="collapsed")
+        code_input = st.text_input("Unlock code", placeholder=f"e.g. {title.upper().replace(' ','-')[:8]}-XXXX-XXXX", key=f"unlock_input_{module_key}", label_visibility="collapsed")
         if st.button("Apply Code", key=f"apply_{module_key}", use_container_width=True):
             if code_input:
                 success, msg = attempt_unlock(code_input, module_key)
@@ -481,73 +564,43 @@ def locked_screen(module_key, title, icon, description, price, gumroad_url):
 # HOME SCREEN
 # ══════════════════════════════════════════════════════════════════════════════
 def show_home():
-    # Header
     st.markdown('<h2 style="font-family:\'Lora\',serif;color:#2d2418;margin-bottom:0.1rem">💡 Indie Digital</h2>', unsafe_allow_html=True)
     st.markdown('<div class="mono-label">Your digital product toolkit</div>', unsafe_allow_html=True)
     st.divider()
 
-    # Module cards
     col1, col2, col3, col4 = st.columns(4)
 
     modules = [
         {
-            "col": col1,
-            "key": "validator",
-            "icon": "🔦",
-            "title": "Business Validator",
+            "col": col1, "key": "validator", "icon": "🔦", "title": "Business Validator",
             "desc_unlocked": "Red/green verdict on whether your idea is worth building. Three dimensions, two minutes.",
             "desc_locked": "Should you build this? Get a red/green viability verdict across demand, market, and gaps.",
             "price": "$9",
-            "btn_label": "Open",
         },
         {
-            "col": col2,
-            "key": "detector",
-            "icon": "🔍",
-            "title": "Competitor Detector",
+            "col": col2, "key": "detector", "icon": "🔍", "title": "Competitor Detector",
             "desc_unlocked": "Scan Etsy, Gumroad, GitHub, and the web for products competing in your space.",
             "desc_locked": "Know who's in your space before you launch. Find gaps in their products — your positioning, handed to you.",
             "price": "$9",
-            "btn_label": "Open",
         },
         {
-            "col": col3,
-            "key": "scanner",
-            "icon": "📡",
-            "title": "Community Scanner",
+            "col": col3, "key": "scanner", "icon": "📡", "title": "Community Scanner",
             "desc_unlocked": "Find online conversations where your product belongs. Draft your reply. Post it yourself.",
             "desc_locked": "Find people describing your problem online. Get a draft reply — helpful first, product mention only when earned.",
             "price": "$9",
-            "btn_label": "Open",
         },
         {
-            "col": col4,
-            "key": "coming",
-            "icon": "⚙️",
-            "title": "More coming",
-            "desc_unlocked": "",
-            "desc_locked": "New tools in development. Follow @indiedigital for updates.",
-            "price": "",
-            "btn_label": "",
+            "col": col4, "key": "mapper", "icon": "🗺️", "title": "Audience Mapper",
+            "desc_unlocked": "Map where your Reddit audience spends time. Uncover messaging angles and product ideas from the overlap.",
+            "desc_locked": "Discover where your audience lives beyond one subreddit. Shapes your marketing, roadmap, and next product idea.",
+            "price": "$9",
         },
     ]
 
     for m in modules:
         with m["col"]:
             unlocked = st.session_state.get(f"unlocked_{m['key']}", False)
-            is_coming = m["key"] == "coming"
-
-            if is_coming:
-                st.markdown(f"""
-                <div class="module-card card-coming">
-                    <div>
-                        <div class="card-icon">{m['icon']}</div>
-                        <div class="card-title" style="color:#7a90a8">{m['title']}</div>
-                        <div class="card-desc-coming">{m['desc_locked']}</div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            elif unlocked:
+            if unlocked:
                 st.markdown(f"""
                 <div class="module-card card-unlocked">
                     <div>
@@ -575,7 +628,7 @@ def show_home():
                     go_module(m['key'])
 
     st.divider()
-    st.caption("Indie Digital · support@indiedigital.dev")
+    st.caption("Indie Digital · support@indiedigital.dev · Manual review required before every post.")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # BUSINESS VALIDATOR MODULE
@@ -597,7 +650,7 @@ def show_validator():
     with st.expander("📋 Your Idea", expanded=st.session_state.validator_results is None):
         c1,c2=st.columns(2)
         with c1:
-            v_problem=st.text_area("Problem it solves", value=st.session_state.v_problem, placeholder="Describe the pain from your customer's perspective.", height=100, key="v_problem_input", help="Write this as your customer would describe it, not as a product feature.")
+            v_problem=st.text_area("Problem it solves", value=st.session_state.v_problem, placeholder="Describe the pain from your customer's perspective.", height=100, key="v_problem_input")
             v_market=st.text_input("Intended market", value=st.session_state.v_market, placeholder="e.g. Small 3D print farm operators, 1-20 printers", key="v_market_input")
             v_price=st.text_input("Target price range", value=st.session_state.v_price, placeholder="e.g. $9-15 one-time purchase", key="v_price_input")
         with c2:
@@ -690,13 +743,12 @@ def show_detector():
     st.markdown("**Find competing and adjacent products. Know the landscape.**")
     st.write("")
 
-    # Inputs
     with st.expander("⚙️ Your Product", expanded=not st.session_state.det_name):
         c1,c2=st.columns(2)
         with c1:
             det_name=st.text_input("Product name", value=st.session_state.det_name, placeholder="e.g. Offset3D", key="det_name_input")
             det_buyer=st.text_input("Who it's for", value=st.session_state.det_buyer, placeholder="e.g. 3D print farm operators, 1-20 printers", key="det_buyer_input")
-            det_niche=st.text_input("Industry or niche", value=st.session_state.det_niche, placeholder="e.g. 3D printing, sourdough baking, indie game dev", key="det_niche_input", help="This is the most important field for finding accurate competitors. Be specific — your niche, not your product type.")
+            det_niche=st.text_input("Industry or niche", value=st.session_state.det_niche, placeholder="e.g. 3D printing, sourdough baking, indie game dev", key="det_niche_input", help="This is the most important field. Be specific about your niche, not your product type.")
         with c2:
             det_url=st.text_input("Your URL", value=st.session_state.det_url, placeholder="e.g. offsetos.com/offset3D", key="det_url_input")
             det_desc=st.text_area("What it does", value=st.session_state.det_desc, placeholder="2-3 sentences.", height=100, key="det_desc_input")
@@ -711,7 +763,7 @@ def show_detector():
                 st.session_state.det_niche=det_niche
                 st.success("Saved.")
         with c2:
-            if st.button(f"Copy product details to Community Scanner", key="copy_det_to_scan"):
+            if st.button("Copy product details to Community Scanner", key="copy_det_to_scan"):
                 st.session_state.scan_name=st.session_state.det_name
                 st.session_state.scan_desc=st.session_state.det_desc
                 st.session_state.scan_buyer=st.session_state.det_buyer
@@ -720,7 +772,6 @@ def show_detector():
                 st.rerun()
 
     c1,c2=st.columns([4,1])
-    with c1: st.write("")
     with c2: run_comp=st.button("▶ RUN SCAN", key="run_comp", use_container_width=True)
 
     if run_comp:
@@ -807,7 +858,6 @@ def show_scanner():
     st.markdown("**Find posts where you can add value and mention your product organically.**")
     st.write("")
 
-    # Inputs
     with st.expander("⚙️ Your Product", expanded=not st.session_state.scan_name):
         c1,c2=st.columns(2)
         with c1:
@@ -833,7 +883,7 @@ def show_scanner():
                 st.session_state.scan_queries=scan_queries
                 st.success("Saved.")
         with c2:
-            if st.button(f"Copy product details to Competitor Detector", key="copy_scan_to_det"):
+            if st.button("Copy product details to Competitor Detector", key="copy_scan_to_det"):
                 st.session_state.det_name=st.session_state.scan_name
                 st.session_state.det_desc=st.session_state.scan_desc
                 st.session_state.det_buyer=st.session_state.scan_buyer
@@ -926,7 +976,6 @@ def show_scanner():
     else:
         st.markdown('<div style="text-align:center;padding:3rem 2rem;color:#9e8e80"><div style="font-size:2rem;margin-bottom:1rem">📡</div><div style="font-size:0.9rem;color:#4a3f35;margin-bottom:0.4rem">No posts loaded yet</div><div style="font-size:0.82rem">Save your product details and hit RUN SCAN</div></div>', unsafe_allow_html=True)
 
-    # ── Activity Log (inside Scanner) ──────────────────────────────────────────
     st.divider()
     with st.expander("📝 Activity Log", expanded=False):
         st.markdown("Track where you've engaged. One entry per response posted.")
@@ -977,6 +1026,132 @@ def show_scanner():
                         st.rerun()
 
 # ══════════════════════════════════════════════════════════════════════════════
+# AUDIENCE MAPPER MODULE
+# ══════════════════════════════════════════════════════════════════════════════
+def show_mapper():
+    if not st.session_state.unlocked_mapper:
+        locked_screen(
+            "mapper", "Audience Mapper", "🗺️",
+            "Enter a subreddit. Get a psychographic profile of your audience, messaging angles, and product ideas — all from publicly available community signals.",
+            "$9 — one-time purchase", GUMROAD_URLS["mapper"]
+        )
+        return
+
+    back_button()
+    st.markdown('<h3 style="font-family:\'Lora\',serif;color:#2d2418">🗺️ Audience Mapper</h3>', unsafe_allow_html=True)
+    st.markdown("**Map where your audience lives. Shape your marketing, roadmap, and next product idea.**")
+    st.write("")
+    st.markdown('<div class="reason-text">Searches publicly available Reddit community signals — cross-community references, recurring topics, tools discussed, and identity patterns — then synthesizes them into a strategic audience profile.</div>', unsafe_allow_html=True)
+    st.write("")
+
+    c1, c2 = st.columns([3,1])
+    with c1:
+        map_subreddit = st.text_input(
+            "Target subreddit",
+            value=st.session_state.map_subreddit,
+            placeholder="3dprintingbusiness",
+            key="map_subreddit_input",
+            help="Enter the subreddit name without r/ — for example: 3dprintingbusiness",
+            label_visibility="collapsed",
+        )
+    with c2:
+        run_mapper = st.button("▶ RUN SCAN", key="run_mapper", use_container_width=True)
+
+    if run_mapper:
+        sub = map_subreddit.lstrip("r/").strip()
+        if not sub:
+            st.warning("Enter a subreddit name before running.")
+        else:
+            st.session_state.map_subreddit = sub
+            client = get_client()
+            findings = run_mapper_searches(client, sub)
+            if not findings:
+                st.error("No community signals found. Check the subreddit name and try again.")
+            else:
+                synthesis = run_mapper_synthesis(client, sub, findings)
+                st.session_state.mapper_results = {
+                    "subreddit": sub,
+                    "findings": findings,
+                    "synthesis": synthesis,
+                }
+                st.session_state.mapper_last_run = time.strftime("%B %d, %Y at %I:%M %p")
+                st.rerun()
+
+    if st.session_state.mapper_results:
+        res = st.session_state.mapper_results
+        synthesis = res["synthesis"]
+        sub = res["subreddit"]
+        signals = synthesis.get("overlap_signals", [])
+        strong = sum(1 for s in signals if s.get("strength") == "Strong")
+        moderate = sum(1 for s in signals if s.get("strength") == "Moderate")
+
+        st.markdown(f'<div class="idea-chip">r/{sub}</div>', unsafe_allow_html=True)
+        if st.session_state.mapper_last_run:
+            st.caption(f"Last run: {st.session_state.mapper_last_run}")
+
+        c1, c2, c3 = st.columns(3)
+        with c1: st.markdown(f'<div class="stat-number">{len(signals)}</div><div class="stat-label">SIGNALS FOUND</div>', unsafe_allow_html=True)
+        with c2: st.markdown(f'<div class="stat-number" style="color:#27ae60">{strong}</div><div class="stat-label">STRONG</div>', unsafe_allow_html=True)
+        with c3: st.markdown(f'<div class="stat-number" style="color:#e67e22">{moderate}</div><div class="stat-label">MODERATE</div>', unsafe_allow_html=True)
+
+        st.divider()
+
+        tab1, tab2, tab3, tab4 = st.tabs(["📊 Community Signals", "🧠 Psychographic Profile", "📣 Marketing Angles", "💡 Product Ideas"])
+
+        with tab1:
+            st.markdown(f'<div class="mono-label">Communities and topics connected to r/{sub} — ranked by signal strength</div>', unsafe_allow_html=True)
+            st.write("")
+            strength_color = {"Strong": "#27ae60", "Moderate": "#e67e22", "Weak": "#9e8e80"}
+            for signal in signals:
+                color = strength_color.get(signal.get("strength","Weak"), "#9e8e80")
+                st.markdown(f"""
+                <div class="sub-row">
+                    <span class="sub-name">{signal.get("community","")}</span>
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:0.72rem;font-weight:600;color:{color};margin:0 1rem;min-width:60px">{signal.get("strength","")}</span>
+                    <span class="sub-score" style="flex:1">{signal.get("reason","")}</span>
+                </div>
+                """, unsafe_allow_html=True)
+
+        with tab2:
+            st.markdown('<div class="mono-label">Audience profile — written as a briefing for a product strategist</div>', unsafe_allow_html=True)
+            st.write("")
+            summary = synthesis.get("psychographic_summary","")
+            for para in summary.split("\n\n"):
+                if para.strip():
+                    st.markdown(f'<div class="psycho-block">{para.strip()}</div>', unsafe_allow_html=True)
+
+        with tab3:
+            st.markdown('<div class="mono-label">Messaging angles suggested by the community signals</div>', unsafe_allow_html=True)
+            st.write("")
+            for angle in synthesis.get("marketing_angles",[]):
+                st.markdown(f"""
+                <div class="angle-card">
+                    <div class="angle-title">{angle.get("angle","")}</div>
+                    <div class="angle-rationale">{angle.get("rationale","")}</div>
+                </div>
+                """, unsafe_allow_html=True)
+
+        with tab4:
+            st.markdown('<div class="mono-label">Product ideas sparked by this audience profile</div>', unsafe_allow_html=True)
+            st.write("")
+            for idea in synthesis.get("product_ideas",[]):
+                st.markdown(f"""
+                <div class="product-idea-card">
+                    <div class="product-idea-name">{idea.get("name","")}</div>
+                    <div class="product-idea-desc">{idea.get("description","")}</div>
+                    <div class="product-idea-rationale">↳ {idea.get("rationale","")}</div>
+                </div>
+                """, unsafe_allow_html=True)
+
+        st.write("")
+        if st.button("🔄 Run a New Scan"):
+            st.session_state.mapper_results = None
+            st.rerun()
+
+    else:
+        st.markdown('<div style="text-align:center;padding:3rem 2rem;color:#9e8e80"><div style="font-size:2rem;margin-bottom:1rem">🗺️</div><div style="font-size:0.9rem;color:#4a3f35;margin-bottom:0.4rem">No results yet</div><div style="font-size:0.82rem">Enter a subreddit name and hit RUN SCAN</div></div>', unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════════════════════════════════════
 # ROUTER
 # ══════════════════════════════════════════════════════════════════════════════
 module = st.session_state.current_module
@@ -989,5 +1164,7 @@ elif module == "detector":
     show_detector()
 elif module == "scanner":
     show_scanner()
+elif module == "mapper":
+    show_mapper()
 else:
     show_home()
