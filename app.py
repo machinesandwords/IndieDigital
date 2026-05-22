@@ -781,16 +781,8 @@ def show_detector():
             det_url=st.text_input("Your URL", value=st.session_state.det_url, placeholder="e.g. offsetos.com/offset3D", key="det_url_input")
             det_desc=st.text_area("What it does", value=st.session_state.det_desc, placeholder="2-3 sentences.", height=100, key="det_desc_input")
 
-        c1,c2,c3=st.columns([2,2,1])
+        c1,c2=st.columns([2,1])
         with c1:
-            if st.button("💾 Save", key="save_det"):
-                st.session_state.det_name=det_name
-                st.session_state.det_desc=det_desc
-                st.session_state.det_buyer=det_buyer
-                st.session_state.det_url=det_url
-                st.session_state.det_niche=det_niche
-                st.success("Saved.")
-        with c2:
             if st.button("Copy product details to Community Scanner", key="copy_det_to_scan"):
                 st.session_state.scan_name=st.session_state.det_name
                 st.session_state.scan_desc=st.session_state.det_desc
@@ -803,8 +795,13 @@ def show_detector():
     with c2: run_comp=st.button("▶ RUN SCAN", key="run_comp", use_container_width=True)
 
     if run_comp:
-        if not st.session_state.det_name:
-            st.warning("Save your product details before scanning.")
+        st.session_state.det_name=det_name
+        st.session_state.det_desc=det_desc
+        st.session_state.det_buyer=det_buyer
+        st.session_state.det_url=det_url
+        st.session_state.det_niche=det_niche
+        if not det_name:
+            st.warning("Enter a product name before scanning.")
         else:
             client=get_client()
             all_products,seen=[],set()
@@ -901,16 +898,8 @@ def show_scanner():
             help="Each line is an independent search. Five to ten lines is a good range.\n\nBest pattern: the frustrated phrase — what someone types when actively annoyed by the problem."
         )
 
-        c1,c2,c3=st.columns([2,2,1])
+        c1,c2=st.columns([2,1])
         with c1:
-            if st.button("💾 Save", key="save_scan"):
-                st.session_state.scan_name=scan_name
-                st.session_state.scan_desc=scan_desc
-                st.session_state.scan_buyer=scan_buyer
-                st.session_state.scan_url=scan_url
-                st.session_state.scan_queries=scan_queries
-                st.success("Saved.")
-        with c2:
             if st.button("Copy product details to Competitor Detector", key="copy_scan_to_det"):
                 st.session_state.det_name=st.session_state.scan_name
                 st.session_state.det_desc=st.session_state.scan_desc
@@ -922,9 +911,14 @@ def show_scanner():
     with c2: run_scan=st.button("▶ RUN SCAN", key="run_scan", use_container_width=True)
 
     if run_scan:
+        st.session_state.scan_name=scan_name
+        st.session_state.scan_desc=scan_desc
+        st.session_state.scan_buyer=scan_buyer
+        st.session_state.scan_url=scan_url
+        st.session_state.scan_queries=scan_queries
         queries=get_scan_queries()
-        if not st.session_state.scan_name:
-            st.warning("Save your product details before scanning.")
+        if not scan_name:
+            st.warning("Enter a product name before scanning.")
         elif not queries:
             st.warning("Add search queries in Your Product above.")
         else:
