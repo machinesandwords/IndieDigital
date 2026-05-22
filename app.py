@@ -422,49 +422,73 @@ def get_competitor_queries():
 
 # ── Audience Mapper functions ──────────────────────────────────────────────────
 
-MAPPER_SEARCH_ANGLES = [
-    "which subreddits do r/{sub} members also post in cross-community",
-    "r/{sub} users also active in subreddit community overlap",
-    "r/{sub} related communities adjacent subreddits members discuss",
-    "r/{sub} what tools products software does community use recommend",
-    "r/{sub} recurring problems frustrations members complain about",
-    "r/{sub} member demographics identity who are these people",
-    "r/{sub} hobbies interests outside niche mentioned community",
-    "r/{sub} income money work side hustle financial goals discussion",
-]
-
 def run_mapper_searches(client, subreddit_name):
     """Run structured web searches to surface community patterns for a subreddit."""
     pb = st.progress(0, text="Searching community patterns...")
     all_findings = []
 
-    queries = [a.format(sub=subreddit_name) for a in MAPPER_SEARCH_ANGLES]
+    search_angles = [
+        f"which subreddits do r/{subreddit_name} members also post in cross-community",
+        f"r/{subreddit_name} users also active in subreddit community overlap",
+        f"r/{subreddit_name} related communities adjacent subreddits members discuss",
+        f"r/{subreddit_name} what tools products software does community use recommend",
+        f"r/{subreddit_name} recurring problems frustrations members complain about",
+        f"r/{subreddit_name} member demographics identity who are these people",
+        f"r/{subreddit_name} hobbies interests outside niche mentioned community",
+        f"r/{subreddit_name} income money work side hustle financial goals discussion",
+    ]
 
-    for i, query in enumerate(queries):
-        pb.progress(int(((i+1)/len(queries))*80), text=f"Searching angle {i+1} of {len(queries)}...")
+    system_prompt = (
+        "You are researching the Reddit community r/" + subreddit_name + ".\n"
+        "Search the web for the query provided and extract specific, concrete findings "
+        "relevant to understanding this community's cross-platform presence, identity, and behavior.\n"
+        'Return JSON only:\n'
+        '{"findings": ["up to 5 specific concrete observations — name actual subreddits, tools, topics, or patterns found"]}\n'
+        'If no relevant results found, return {"findings": []}\n'
+        "ONLY valid JSON."
+    )
+
+    for i, query in enumerate(search_angles):
+        pb.progress(int(((i+1)/len(search_angles))*80), text=f"Searching angle {i+1} of {len(search_angles)}...")
         try:
             r = client.messages.create(
-                model="claude-sonnet-4-20250514", max_tokens=600,
-                system=f"""You are researching the Reddit community r/{subreddit_name}.
-Search the web for the query provided and extract specific, concrete findings relevant to understanding this community's cross-platform presence, identity, and behavior.
-Return JSON only:
-{{"findings": ["up to 5 specific concrete observations — name actual subreddits, tools, topics, or patterns found"]}}
-If no relevant results found, return {{"findings": []}}
-ONLY valid JSON.""",
+                model="claude-sonnet-4-20250514", max_tokens=800,
+                system=system_prompt,
                 messages=[{"role":"user","content":f"Search: {query}"}],
                 tools=[{"type":"web_search_20250305","name":"web_search"}],
             )
             text = "".join(b.text for b in r.content if hasattr(b,"text"))
-            s, e = text.find("{"), text.rfind("}")+1
+            s, e = text.find("["), text.rfind("]")+1
+            # Try array first (findings array), then object wrapper
             if s >= 0 and e > s:
-                data = json.loads(text[s:e])
-                all_findings.extend(data.get("findings", []))
+                try:
+                    items = json.loads(text[s:e])
+                    if isinstance(items, list):
+                        all_findings.extend(items)
+                except Exception:
+                    pass
+            s2, e2 = text.find("{"), text.rfind("}")+1
+            if s2 >= 0 and e2 > s2:
+                try:
+                    data = json.loads(text[s2:e2])
+                    all_findings.extend(data.get("findings", []))
+                except Exception:
+                    pass
         except Exception:
             pass
-        time.sleep(0.2)
+        time.sleep(0.3)
+
+    # Deduplicate
+    seen = set()
+    deduped = []
+    for f in all_findings:
+        key = f.lower().strip()[:80]
+        if key not in seen:
+            seen.add(key)
+            deduped.append(f)
 
     pb.progress(85, text="Running AI synthesis...")
-    return all_findings
+    return deduped
 
 def run_mapper_synthesis(client, subreddit_name, findings):
     """Claude synthesis from web search findings: overlap signals, psychographic summary, marketing angles, product ideas."""
@@ -1065,17 +1089,14 @@ def show_mapper():
             st.session_state.map_subreddit = sub
             client = get_client()
             findings = run_mapper_searches(client, sub)
-            if not findings:
-                st.error("No community signals found. Check the subreddit name and try again.")
-            else:
-                synthesis = run_mapper_synthesis(client, sub, findings)
-                st.session_state.mapper_results = {
-                    "subreddit": sub,
-                    "findings": findings,
-                    "synthesis": synthesis,
-                }
-                st.session_state.mapper_last_run = time.strftime("%B %d, %Y at %I:%M %p")
-                st.rerun()
+            synthesis = run_mapper_synthesis(client, sub, findings)
+            st.session_state.mapper_results = {
+                "subreddit": sub,
+                "findings": findings,
+                "synthesis": synthesis,
+            }
+            st.session_state.mapper_last_run = time.strftime("%B %d, %Y at %I:%M %p")
+            st.rerun()
 
     if st.session_state.mapper_results:
         res = st.session_state.mapper_results
