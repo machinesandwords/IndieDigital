@@ -2,8 +2,6 @@ import streamlit as st
 import anthropic
 import json
 import time
-import csv
-import io
 import concurrent.futures
 from datetime import datetime
 
@@ -192,8 +190,7 @@ defaults = {
     # Mapper
     "map_subreddit": "",
     "mapper_results": None, "mapper_last_run": None,
-    # Activity log
-    "activity_log": [],
+    # Activity log removed
     # Unlock inputs
     "unlock_input_detector": "",
     "unlock_input_scanner": "",
@@ -980,9 +977,6 @@ def show_scanner():
                 st.markdown("**Suggested response** — includes product mention" if pfit else "**Suggested response** — helpful only, no pitch")
                 draft=post.get("draft","No draft generated.")
                 st.text_area("draft",value=draft,height=220,key=f"draft_{post.get('id',0)}",label_visibility="collapsed")
-                if st.button("+ Log this response",key=f"log_{post.get('id',0)}"):
-                    st.session_state.activity_log.append({"date":datetime.now().strftime("%Y-%m-%d %H:%M"),"platform":post.get("source",""),"title":post.get("title",""),"url":post.get("url",""),"notes":"","status":"Drafted"})
-                    st.success("Added to Activity Log.")
                 st.caption("Review and edit before posting. You own every reply.")
         if stale:
             st.write("")
@@ -997,55 +991,6 @@ def show_scanner():
                         st.caption("Verify date before posting.")
     else:
         st.markdown('<div style="text-align:center;padding:3rem 2rem;color:#9e8e80"><div style="font-size:2rem;margin-bottom:1rem">📡</div><div style="font-size:0.9rem;color:#4a3f35;margin-bottom:0.4rem">No posts loaded yet</div><div style="font-size:0.82rem">Save your product details and hit RUN SCAN</div></div>', unsafe_allow_html=True)
-
-    st.divider()
-    with st.expander("📝 Activity Log", expanded=False):
-        st.markdown("Track where you've engaged. One entry per response posted.")
-        st.write("")
-        c1,c2=st.columns(2)
-        with c1:
-            lp=st.text_input("Platform / Community",placeholder="e.g. r/3dprintingbusiness",key="lp")
-            lu=st.text_input("Post URL",placeholder="https://...",key="lu")
-        with c2:
-            lt=st.text_input("Post Title",placeholder="What was the post about?",key="lt")
-            ls=st.selectbox("Status",["Posted","Drafted","Skipped"],key="ls")
-        ln=st.text_input("Notes",placeholder="Optional — what did you say, any product mention?",key="ln")
-        if st.button("Add to Log",key="add_log"):
-            if lp or lt:
-                st.session_state.activity_log.append({"date":datetime.now().strftime("%Y-%m-%d %H:%M"),"platform":lp,"title":lt,"url":lu,"notes":ln,"status":ls})
-                st.success("Entry added.")
-                st.rerun()
-            else:
-                st.warning("Add at least a platform or title.")
-
-        if st.session_state.activity_log:
-            log=list(reversed(st.session_state.activity_log))
-            posted=sum(1 for e in log if e.get("status")=="Posted")
-            drafted=sum(1 for e in log if e.get("status")=="Drafted")
-            c1,c2,c3=st.columns(3)
-            with c1: st.markdown(f'<div class="stat-number">{len(log)}</div><div class="stat-label">TOTAL</div>', unsafe_allow_html=True)
-            with c2: st.markdown(f'<div class="stat-number" style="color:#27ae60">{posted}</div><div class="stat-label">POSTED</div>', unsafe_allow_html=True)
-            with c3: st.markdown(f'<div class="stat-number" style="color:#e67e22">{drafted}</div><div class="stat-label">DRAFTED</div>', unsafe_allow_html=True)
-            st.write("")
-            if st.button("⬇ Export CSV",key="export_csv"):
-                out=io.StringIO()
-                w=csv.DictWriter(out,fieldnames=["date","platform","title","url","status","notes"])
-                w.writeheader(); w.writerows(st.session_state.activity_log)
-                st.download_button("Download activity_log.csv",data=out.getvalue(),file_name=f"activity_log_{datetime.now().strftime('%Y%m%d')}.csv",mime="text/csv")
-            st.write("")
-            for i,entry in enumerate(log):
-                sc={"Posted":"#27ae60","Drafted":"#e67e22","Skipped":"#9e8e80"}.get(entry.get("status"),"#9e8e80")
-                with st.expander(f"{entry.get('date','')} · {entry.get('platform','')} · {entry.get('title','')[:50]}",expanded=False):
-                    c1,c2=st.columns([3,1])
-                    with c1:
-                        url=entry.get("url","")
-                        if url: st.markdown(f"[→ View post]({url})")
-                        if entry.get("notes"): st.markdown(f'<div class="reason-text">{entry.get("notes")}</div>', unsafe_allow_html=True)
-                    with c2:
-                        st.markdown(f'<span style="color:{sc};font-weight:600;font-size:0.85rem">{entry.get("status","")}</span>', unsafe_allow_html=True)
-                    if st.button("🗑 Remove",key=f"rm_{i}"):
-                        st.session_state.activity_log.pop(len(st.session_state.activity_log)-1-i)
-                        st.rerun()
 
 # ══════════════════════════════════════════════════════════════════════════════
 # AUDIENCE MAPPER MODULE
