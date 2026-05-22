@@ -336,7 +336,7 @@ Buyer: {st.session_state.det_buyer}"""
 def search_community_posts(client, query):
     try:
         r=client.messages.create(
-            model="claude-sonnet-4-20250514", max_tokens=1000,
+            model="claude-opus-4-5", max_tokens=1000,
             system="""Search Reddit and online communities for relevant posts.
 Return JSON array of up to 3:
 [{"title":"","source":"","url":"","summary":"2-3 sentences","age":"e.g. 2 days ago"}]
@@ -353,7 +353,7 @@ Prioritize last 48 hours. ONLY valid JSON array.""",
 def score_post(client, post):
     try:
         r=client.messages.create(
-            model="claude-sonnet-4-20250514", max_tokens=1000,
+            model="claude-opus-4-5", max_tokens=1000,
             system=community_prompt()+"""
 Return JSON only:
 {"opportunity":"High/Medium/Low","reason":"one sentence","productFit":true/false,
