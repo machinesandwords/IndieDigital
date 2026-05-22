@@ -243,7 +243,7 @@ def validator_context(idea):
 def run_dim1(client, idea):
     try:
         r = client.messages.create(
-            model="claude-sonnet-4-20250514", max_tokens=1200,
+            model="claude-sonnet-4-6", max_tokens=1200,
             system=validator_context(idea)+"""
 Search Reddit, forums, Quora for evidence people experience this problem.
 Return JSON only:
@@ -262,7 +262,7 @@ green=clear repeated demand, yellow=thin, red=little evidence. ONLY valid JSON."
 def run_dim2(client, idea):
     try:
         r = client.messages.create(
-            model="claude-sonnet-4-20250514", max_tokens=1200,
+            model="claude-sonnet-4-6", max_tokens=1200,
             system=validator_context(idea)+"""
 Search Etsy, Gumroad, GitHub, Product Hunt for competing products and communities.
 Return JSON only:
@@ -282,7 +282,7 @@ def run_dim3(client, idea, competitors):
     comp_names=", ".join(competitors) if competitors else "existing products"
     try:
         r = client.messages.create(
-            model="claude-sonnet-4-20250514", max_tokens=1200,
+            model="claude-sonnet-4-6", max_tokens=1200,
             system=validator_context(idea)+f"""
 Known competitors: {comp_names}
 Search G2, Capterra, Trustpilot, Gumroad reviews, Reddit for complaints and unmet needs.
@@ -336,7 +336,7 @@ Buyer: {st.session_state.det_buyer}"""
 def search_community_posts(client, query):
     try:
         r=client.messages.create(
-            model="claude-sonnet-4-20250514", max_tokens=1000,
+            model="claude-sonnet-4-6", max_tokens=1000,
             system="""Search Reddit and online communities for relevant posts.
 Return JSON array of up to 3:
 [{"title":"","source":"","url":"","summary":"2-3 sentences","age":"e.g. 2 days ago"}]
@@ -353,7 +353,7 @@ Prioritize last 48 hours. ONLY valid JSON array.""",
 def score_post(client, post):
     try:
         r=client.messages.create(
-            model="claude-sonnet-4-20250514", max_tokens=1000,
+            model="claude-sonnet-4-6", max_tokens=1000,
             system=community_prompt()+"""
 Return JSON only:
 {"opportunity":"High/Medium/Low","reason":"one sentence","productFit":true/false,
@@ -370,7 +370,7 @@ ONLY valid JSON.""",
 def search_competitors(client, query):
     try:
         r=client.messages.create(
-            model="claude-sonnet-4-20250514", max_tokens=1000,
+            model="claude-sonnet-4-6", max_tokens=1000,
             system="""Search Etsy, Gumroad, GitHub, Product Hunt for competing products.
 Return JSON array of up to 3:
 [{"name":"","platform":"","url":"","description":"2-3 sentences","price":"","seller":""}]
@@ -387,7 +387,7 @@ ONLY valid JSON array.""",
 def analyze_competitor(client, product):
     try:
         r=client.messages.create(
-            model="claude-sonnet-4-20250514", max_tokens=1000,
+            model="claude-sonnet-4-6", max_tokens=1000,
             system=competitor_prompt()+"""
 Return JSON only:
 {"threat":"Direct/Adjacent/Reference","price":"","platform":"",
@@ -452,7 +452,7 @@ def run_mapper_searches(client, subreddit_name):
         pb.progress(int(((i+1)/len(search_angles))*80), text=f"Searching angle {i+1} of {len(search_angles)}...")
         try:
             r = client.messages.create(
-                model="claude-sonnet-4-20250514", max_tokens=800,
+                model="claude-sonnet-4-6", max_tokens=800,
                 system=system_prompt,
                 messages=[{"role":"user","content":f"Search: {query}"}],
                 tools=[{"type":"web_search_20250305","name":"web_search"}],
@@ -488,6 +488,10 @@ def run_mapper_searches(client, subreddit_name):
             deduped.append(f)
 
     pb.progress(85, text="Running AI synthesis...")
+    if deduped:
+        st.caption(f"Search phase complete — {len(deduped)} signals collected. Synthesizing...")
+    else:
+        st.caption("Search phase returned no results — synthesizing from Claude's knowledge of this community.")
     return deduped
 
 def run_mapper_synthesis(client, subreddit_name, findings):
@@ -496,7 +500,7 @@ def run_mapper_synthesis(client, subreddit_name, findings):
 
     try:
         r = client.messages.create(
-            model="claude-sonnet-4-20250514", max_tokens=2500,
+            model="claude-sonnet-4-6", max_tokens=2500,
             system=f"""You are analyzing publicly available information about the Reddit community r/{subreddit_name}.
 The findings below were gathered by searching for community patterns, cross-sub activity, tools used, recurring topics, and identity signals.
 
