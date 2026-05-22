@@ -866,7 +866,7 @@ def show_scanner():
         )
 
     c1,c2=st.columns([2,1])
-        with c1:
+    with c1:
             if st.button("Copy product details to Competitor Detector", key="copy_scan_to_det"):
                 st.session_state.det_name=st.session_state.scan_name
                 st.session_state.det_desc=st.session_state.scan_desc
