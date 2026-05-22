@@ -865,7 +865,7 @@ def show_scanner():
             help="Each line is an independent search. Five to ten lines is a good range.\n\nBest pattern: the frustrated phrase — what someone types when actively annoyed by the problem."
         )
 
-       c1,c2=st.columns([2,1])
+    c1,c2=st.columns([2,1])
         with c1:
             if st.button("Copy product details to Competitor Detector", key="copy_scan_to_det"):
                 st.session_state.det_name=st.session_state.scan_name
