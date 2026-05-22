@@ -628,7 +628,7 @@ def show_home():
                     go_module(m['key'])
 
     st.divider()
-    st.caption("Indie Digital · support@indiedigital.dev")
+    st.caption("Indie Digital · support@indiedigital.dev · Manual review required before every post.")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # BUSINESS VALIDATOR MODULE
@@ -756,22 +756,24 @@ def show_detector():
         c1,c2=st.columns([2,1])
         with c1:
             if st.button("Copy product details to Community Scanner", key="copy_det_to_scan"):
-                st.session_state.scan_name=st.session_state.det_name
-                st.session_state.scan_desc=st.session_state.det_desc
-                st.session_state.scan_buyer=st.session_state.det_buyer
-                st.session_state.scan_url=st.session_state.det_url
+                st.session_state.scan_name=det_name
+                st.session_state.scan_desc=det_desc
+                st.session_state.scan_buyer=det_buyer
+                st.session_state.scan_url=det_url
                 st.success("Copied to Community Scanner.")
                 st.rerun()
+
+    # Sync field values to session state on every render
+    st.session_state.det_name=det_name
+    st.session_state.det_desc=det_desc
+    st.session_state.det_buyer=det_buyer
+    st.session_state.det_url=det_url
+    st.session_state.det_niche=det_niche
 
     c1,c2=st.columns([4,1])
     with c2: run_comp=st.button("▶ RUN SCAN", key="run_comp", use_container_width=True)
 
     if run_comp:
-        st.session_state.det_name=det_name
-        st.session_state.det_desc=det_desc
-        st.session_state.det_buyer=det_buyer
-        st.session_state.det_url=det_url
-        st.session_state.det_niche=det_niche
         if not det_name:
             st.warning("Enter a product name before scanning.")
         else:
@@ -870,14 +872,21 @@ def show_scanner():
             help="Each line is an independent search. Five to ten lines is a good range.\n\nBest pattern: the frustrated phrase — what someone types when actively annoyed by the problem."
         )
 
-    c1,c2=st.columns([2,1])
-    with c1:
+        c1,c2=st.columns([2,1])
+        with c1:
             if st.button("Copy product details to Competitor Detector", key="copy_scan_to_det"):
-                st.session_state.det_name=st.session_state.scan_name
-                st.session_state.det_desc=st.session_state.scan_desc
-                st.session_state.det_buyer=st.session_state.scan_buyer
-                st.session_state.det_url=st.session_state.scan_url
+                st.session_state.det_name=scan_name
+                st.session_state.det_desc=scan_desc
+                st.session_state.det_buyer=scan_buyer
+                st.session_state.det_url=scan_url
                 st.success("Copied to Competitor Detector.")
+
+    # Sync field values to session state on every render
+    st.session_state.scan_name=scan_name
+    st.session_state.scan_desc=scan_desc
+    st.session_state.scan_buyer=scan_buyer
+    st.session_state.scan_url=scan_url
+    st.session_state.scan_queries=scan_queries
 
     c1,c2=st.columns([4,1])
     with c2: run_scan=st.button("▶ RUN SCAN", key="run_scan", use_container_width=True)
