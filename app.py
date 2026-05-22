@@ -879,8 +879,8 @@ def show_scanner():
 
     if run_scan:
         queries=get_scan_queries()
-        if not st.session_state.scan_name:
-            st.warning("Save your product details before scanning.")
+        if not scan_name:
+            st.warning("Enter a product name before scanning.")
         elif not queries:
             st.warning("Add search queries in Your Product above.")
         else:
