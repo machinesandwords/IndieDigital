@@ -767,8 +767,13 @@ def show_detector():
     with c2: run_comp=st.button("▶ RUN SCAN", key="run_comp", use_container_width=True)
 
     if run_comp:
-        if not st.session_state.det_name:
-            st.warning("Save your product details before scanning.")
+        st.session_state.det_name=det_name
+        st.session_state.det_desc=det_desc
+        st.session_state.det_buyer=det_buyer
+        st.session_state.det_url=det_url
+        st.session_state.det_niche=det_niche
+        if not det_name:
+            st.warning("Enter a product name before scanning.")
         else:
             client=get_client()
             all_products,seen=[],set()
