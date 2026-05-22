@@ -243,7 +243,7 @@ def validator_context(idea):
 def run_dim1(client, idea):
     try:
         r = client.messages.create(
-            model="claude-sonnet-4-20250514", max_tokens=1200,
+            model="claude-sonnet-4-6", max_tokens=1200,
             system=validator_context(idea)+"""
 Search Reddit, forums, Quora for evidence people experience this problem.
 Return JSON only:
@@ -262,7 +262,7 @@ green=clear repeated demand, yellow=thin, red=little evidence. ONLY valid JSON."
 def run_dim2(client, idea):
     try:
         r = client.messages.create(
-            model="claude-sonnet-4-20250514", max_tokens=1200,
+            model="claude-sonnet-4-6", max_tokens=1200,
             system=validator_context(idea)+"""
 Search Etsy, Gumroad, GitHub, Product Hunt for competing products and communities.
 Return JSON only:
@@ -282,7 +282,7 @@ def run_dim3(client, idea, competitors):
     comp_names=", ".join(competitors) if competitors else "existing products"
     try:
         r = client.messages.create(
-            model="claude-sonnet-4-20250514", max_tokens=1200,
+            model="claude-sonnet-4-6", max_tokens=1200,
             system=validator_context(idea)+f"""
 Known competitors: {comp_names}
 Search G2, Capterra, Trustpilot, Gumroad reviews, Reddit for complaints and unmet needs.
@@ -336,7 +336,7 @@ Buyer: {st.session_state.det_buyer}"""
 def search_community_posts(client, query):
     try:
         r=client.messages.create(
-            model="claude-opus-4-5", max_tokens=1000,
+            model="claude-sonnet-4-6", max_tokens=1000,
             system="""Search Reddit and online communities for relevant posts.
 Return JSON array of up to 3:
 [{"title":"","source":"","url":"","summary":"2-3 sentences","age":"e.g. 2 days ago"}]
@@ -353,7 +353,7 @@ Prioritize last 48 hours. ONLY valid JSON array.""",
 def score_post(client, post):
     try:
         r=client.messages.create(
-            model="claude-opus-4-5", max_tokens=1000,
+            model="claude-sonnet-4-6", max_tokens=1000,
             system=community_prompt()+"""
 Return JSON only:
 {"opportunity":"High/Medium/Low","reason":"one sentence","productFit":true/false,
@@ -370,7 +370,7 @@ ONLY valid JSON.""",
 def search_competitors(client, query):
     try:
         r=client.messages.create(
-            model="claude-sonnet-4-20250514", max_tokens=1000,
+            model="claude-sonnet-4-6", max_tokens=1000,
             system="""Search Etsy, Gumroad, GitHub, Product Hunt for competing products.
 Return JSON array of up to 3:
 [{"name":"","platform":"","url":"","description":"2-3 sentences","price":"","seller":""}]
@@ -387,7 +387,7 @@ ONLY valid JSON array.""",
 def analyze_competitor(client, product):
     try:
         r=client.messages.create(
-            model="claude-sonnet-4-20250514", max_tokens=1000,
+            model="claude-sonnet-4-6", max_tokens=1000,
             system=competitor_prompt()+"""
 Return JSON only:
 {"threat":"Direct/Adjacent/Reference","price":"","platform":"",
@@ -422,49 +422,77 @@ def get_competitor_queries():
 
 # ── Audience Mapper functions ──────────────────────────────────────────────────
 
-MAPPER_SEARCH_ANGLES = [
-    "which subreddits do r/{sub} members also post in cross-community",
-    "r/{sub} users also active in subreddit community overlap",
-    "r/{sub} related communities adjacent subreddits members discuss",
-    "r/{sub} what tools products software does community use recommend",
-    "r/{sub} recurring problems frustrations members complain about",
-    "r/{sub} member demographics identity who are these people",
-    "r/{sub} hobbies interests outside niche mentioned community",
-    "r/{sub} income money work side hustle financial goals discussion",
-]
-
 def run_mapper_searches(client, subreddit_name):
     """Run structured web searches to surface community patterns for a subreddit."""
     pb = st.progress(0, text="Searching community patterns...")
     all_findings = []
 
-    queries = [a.format(sub=subreddit_name) for a in MAPPER_SEARCH_ANGLES]
+    search_angles = [
+        f"which subreddits do r/{subreddit_name} members also post in cross-community",
+        f"r/{subreddit_name} users also active in subreddit community overlap",
+        f"r/{subreddit_name} related communities adjacent subreddits members discuss",
+        f"r/{subreddit_name} what tools products software does community use recommend",
+        f"r/{subreddit_name} recurring problems frustrations members complain about",
+        f"r/{subreddit_name} member demographics identity who are these people",
+        f"r/{subreddit_name} hobbies interests outside niche mentioned community",
+        f"r/{subreddit_name} income money work side hustle financial goals discussion",
+    ]
 
-    for i, query in enumerate(queries):
-        pb.progress(int(((i+1)/len(queries))*80), text=f"Searching angle {i+1} of {len(queries)}...")
+    system_prompt = (
+        "You are researching the Reddit community r/" + subreddit_name + ".\n"
+        "Search the web for the query provided and extract specific, concrete findings "
+        "relevant to understanding this community's cross-platform presence, identity, and behavior.\n"
+        'Return JSON only:\n'
+        '{"findings": ["up to 5 specific concrete observations — name actual subreddits, tools, topics, or patterns found"]}\n'
+        'If no relevant results found, return {"findings": []}\n'
+        "ONLY valid JSON."
+    )
+
+    for i, query in enumerate(search_angles):
+        pb.progress(int(((i+1)/len(search_angles))*80), text=f"Searching angle {i+1} of {len(search_angles)}...")
         try:
             r = client.messages.create(
-                model="claude-sonnet-4-20250514", max_tokens=600,
-                system=f"""You are researching the Reddit community r/{subreddit_name}.
-Search the web for the query provided and extract specific, concrete findings relevant to understanding this community's cross-platform presence, identity, and behavior.
-Return JSON only:
-{{"findings": ["up to 5 specific concrete observations — name actual subreddits, tools, topics, or patterns found"]}}
-If no relevant results found, return {{"findings": []}}
-ONLY valid JSON.""",
+                model="claude-sonnet-4-6", max_tokens=800,
+                system=system_prompt,
                 messages=[{"role":"user","content":f"Search: {query}"}],
                 tools=[{"type":"web_search_20250305","name":"web_search"}],
             )
             text = "".join(b.text for b in r.content if hasattr(b,"text"))
-            s, e = text.find("{"), text.rfind("}")+1
+            s, e = text.find("["), text.rfind("]")+1
+            # Try array first (findings array), then object wrapper
             if s >= 0 and e > s:
-                data = json.loads(text[s:e])
-                all_findings.extend(data.get("findings", []))
+                try:
+                    items = json.loads(text[s:e])
+                    if isinstance(items, list):
+                        all_findings.extend(items)
+                except Exception:
+                    pass
+            s2, e2 = text.find("{"), text.rfind("}")+1
+            if s2 >= 0 and e2 > s2:
+                try:
+                    data = json.loads(text[s2:e2])
+                    all_findings.extend(data.get("findings", []))
+                except Exception:
+                    pass
         except Exception:
             pass
-        time.sleep(0.2)
+        time.sleep(0.3)
+
+    # Deduplicate
+    seen = set()
+    deduped = []
+    for f in all_findings:
+        key = f.lower().strip()[:80]
+        if key not in seen:
+            seen.add(key)
+            deduped.append(f)
 
     pb.progress(85, text="Running AI synthesis...")
-    return all_findings
+    if deduped:
+        st.caption(f"Search phase complete — {len(deduped)} signals collected. Synthesizing...")
+    else:
+        st.caption("Search phase returned no results — synthesizing from Claude's knowledge of this community.")
+    return deduped
 
 def run_mapper_synthesis(client, subreddit_name, findings):
     """Claude synthesis from web search findings: overlap signals, psychographic summary, marketing angles, product ideas."""
@@ -472,7 +500,7 @@ def run_mapper_synthesis(client, subreddit_name, findings):
 
     try:
         r = client.messages.create(
-            model="claude-sonnet-4-20250514", max_tokens=2500,
+            model="claude-sonnet-4-6", max_tokens=2500,
             system=f"""You are analyzing publicly available information about the Reddit community r/{subreddit_name}.
 The findings below were gathered by searching for community patterns, cross-sub activity, tools used, recurring topics, and identity signals.
 
@@ -753,29 +781,30 @@ def show_detector():
             det_url=st.text_input("Your URL", value=st.session_state.det_url, placeholder="e.g. offsetos.com/offset3D", key="det_url_input")
             det_desc=st.text_area("What it does", value=st.session_state.det_desc, placeholder="2-3 sentences.", height=100, key="det_desc_input")
 
-        c1,c2=st.columns([2,1])
+        c1,c2,c3=st.columns([2,2,1])
         with c1:
+            if st.button("💾 Save", key="save_det"):
+                st.session_state.det_name=det_name
+                st.session_state.det_desc=det_desc
+                st.session_state.det_buyer=det_buyer
+                st.session_state.det_url=det_url
+                st.session_state.det_niche=det_niche
+                st.success("Saved.")
+        with c2:
             if st.button("Copy product details to Community Scanner", key="copy_det_to_scan"):
-                st.session_state.scan_name=det_name
-                st.session_state.scan_desc=det_desc
-                st.session_state.scan_buyer=det_buyer
-                st.session_state.scan_url=det_url
+                st.session_state.scan_name=st.session_state.det_name
+                st.session_state.scan_desc=st.session_state.det_desc
+                st.session_state.scan_buyer=st.session_state.det_buyer
+                st.session_state.scan_url=st.session_state.det_url
                 st.success("Copied to Community Scanner.")
                 st.rerun()
-
-    # Sync field values to session state on every render
-    st.session_state.det_name=det_name
-    st.session_state.det_desc=det_desc
-    st.session_state.det_buyer=det_buyer
-    st.session_state.det_url=det_url
-    st.session_state.det_niche=det_niche
 
     c1,c2=st.columns([4,1])
     with c2: run_comp=st.button("▶ RUN SCAN", key="run_comp", use_container_width=True)
 
     if run_comp:
-        if not det_name:
-            st.warning("Enter a product name before scanning.")
+        if not st.session_state.det_name:
+            st.warning("Save your product details before scanning.")
         else:
             client=get_client()
             all_products,seen=[],set()
@@ -872,29 +901,30 @@ def show_scanner():
             help="Each line is an independent search. Five to ten lines is a good range.\n\nBest pattern: the frustrated phrase — what someone types when actively annoyed by the problem."
         )
 
-        c1,c2=st.columns([2,1])
+        c1,c2,c3=st.columns([2,2,1])
         with c1:
+            if st.button("💾 Save", key="save_scan"):
+                st.session_state.scan_name=scan_name
+                st.session_state.scan_desc=scan_desc
+                st.session_state.scan_buyer=scan_buyer
+                st.session_state.scan_url=scan_url
+                st.session_state.scan_queries=scan_queries
+                st.success("Saved.")
+        with c2:
             if st.button("Copy product details to Competitor Detector", key="copy_scan_to_det"):
-                st.session_state.det_name=scan_name
-                st.session_state.det_desc=scan_desc
-                st.session_state.det_buyer=scan_buyer
-                st.session_state.det_url=scan_url
+                st.session_state.det_name=st.session_state.scan_name
+                st.session_state.det_desc=st.session_state.scan_desc
+                st.session_state.det_buyer=st.session_state.scan_buyer
+                st.session_state.det_url=st.session_state.scan_url
                 st.success("Copied to Competitor Detector.")
-
-    # Sync field values to session state on every render
-    st.session_state.scan_name=scan_name
-    st.session_state.scan_desc=scan_desc
-    st.session_state.scan_buyer=scan_buyer
-    st.session_state.scan_url=scan_url
-    st.session_state.scan_queries=scan_queries
 
     c1,c2=st.columns([4,1])
     with c2: run_scan=st.button("▶ RUN SCAN", key="run_scan", use_container_width=True)
 
     if run_scan:
         queries=get_scan_queries()
-        if not scan_name:
-            st.warning("Enter a product name before scanning.")
+        if not st.session_state.scan_name:
+            st.warning("Save your product details before scanning.")
         elif not queries:
             st.warning("Add search queries in Your Product above.")
         else:
@@ -1063,17 +1093,14 @@ def show_mapper():
             st.session_state.map_subreddit = sub
             client = get_client()
             findings = run_mapper_searches(client, sub)
-            if not findings:
-                st.error("No community signals found. Check the subreddit name and try again.")
-            else:
-                synthesis = run_mapper_synthesis(client, sub, findings)
-                st.session_state.mapper_results = {
-                    "subreddit": sub,
-                    "findings": findings,
-                    "synthesis": synthesis,
-                }
-                st.session_state.mapper_last_run = time.strftime("%B %d, %Y at %I:%M %p")
-                st.rerun()
+            synthesis = run_mapper_synthesis(client, sub, findings)
+            st.session_state.mapper_results = {
+                "subreddit": sub,
+                "findings": findings,
+                "synthesis": synthesis,
+            }
+            st.session_state.mapper_last_run = time.strftime("%B %d, %Y at %I:%M %p")
+            st.rerun()
 
     if st.session_state.mapper_results:
         res = st.session_state.mapper_results
