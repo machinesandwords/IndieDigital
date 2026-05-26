@@ -333,7 +333,7 @@ Buyer: {st.session_state.det_buyer}"""
 def search_community_posts(client, query):
     try:
         r=client.messages.create(
-            model="claude-sonnet-4-6", max_tokens=1000,
+            model="claude-haiku-4-5-20251001", max_tokens=1000,
             system="""Search Reddit and online communities for relevant posts.
 Return JSON array of up to 3:
 [{"title":"","source":"","url":"","summary":"2-3 sentences","age":"e.g. 2 days ago"}]
@@ -367,7 +367,7 @@ ONLY valid JSON.""",
 def search_competitors(client, query):
     try:
         r=client.messages.create(
-            model="claude-sonnet-4-6", max_tokens=1000,
+            model="claude-haiku-4-5-20251001", max_tokens=1000,
             system="""Search Etsy, Gumroad, GitHub, Product Hunt for competing products.
 Return JSON array of up to 3:
 [{"name":"","platform":"","url":"","description":"2-3 sentences","price":"","seller":""}]
@@ -449,7 +449,7 @@ def run_mapper_searches(client, subreddit_name):
         pb.progress(int(((i+1)/len(search_angles))*80), text=f"Searching angle {i+1} of {len(search_angles)}...")
         try:
             r = client.messages.create(
-                model="claude-sonnet-4-6", max_tokens=800,
+                model="claude-haiku-4-5-20251001", max_tokens=800,
                 system=system_prompt,
                 messages=[{"role":"user","content":f"Search: {query}"}],
                 tools=[{"type":"web_search_20250305","name":"web_search"}],
