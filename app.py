@@ -141,7 +141,7 @@ UNLOCK_CODES = {
     "DETECTOR-3N7Q-5R1W": "detector",
     "SCANNER-6T2L-4V8J": "scanner",
     "MAPPER-2P9K-7W4X": "mapper",
-    "DEMO-CODE": "bundle",
+    "BUNDLE-9Y5H-7C3D": "bundle",
 }
 
 GUMROAD_URLS = {
