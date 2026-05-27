@@ -590,7 +590,7 @@ def locked_screen(module_key, title, icon, description, price, gumroad_url):
 # ══════════════════════════════════════════════════════════════════════════════
 def show_home():
     st.markdown('<h2 style="font-family:\'Lora\',serif;color:#2d2418;margin-bottom:0.1rem">💡 Indie Digital</h2>', unsafe_allow_html=True)
-    st.markdown('<div class="mono-label">Solo Builder's Research Kit</div>', unsafe_allow_html=True)
+    st.markdown('<div class="mono-label">Solo Builder\'s Research Kit</div>', unsafe_allow_html=True)
     st.divider()
 
     col1, col2, col3, col4 = st.columns(4)
